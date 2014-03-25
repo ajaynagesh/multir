@@ -30,13 +30,16 @@ public class Main {
 			
 		} else if (c.equals("train")) {
 			String dir = null;
+			String type = null;
 			for (int i=1; i < args.length; i++) {
 				if (args[i].equals("-dir") && i+1 < args.length)
 					dir = args[++i];
+				else if (args[i].equals("-type") && i+1 < args.length)
+					type = args[++i];
 				else printUsageTrain();
 			}
-			if (dir == null) printUsageTrain();
-			Train.train(dir);
+			if (dir == null || type == null) printUsageTrain();
+			Train.train(dir, type);
 			
 		} else if (c.equals("test")) {
 			String dir = null;
@@ -110,7 +113,7 @@ public class Main {
 	}
 
 	private static void printUsageTrain() {
-		System.out.println("Usage: Main train -dir ..");
+		System.out.println("Usage: Main train -dir .. -type <type>");
 		System.exit(1);
 	}
 	
