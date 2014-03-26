@@ -31,9 +31,9 @@ public class Train {
 			AveragedPerceptron ct = new AveragedPerceptron(model, random);
 			params = ct.train(train);
 		}
-		else if(type.equals("ilp")){
+		else if(type.equals("ilp") || type.equals("noisyor")){
 			AveragedPerceptronILP ct = new AveragedPerceptronILP(model, random);
-			params = ct.train(train);
+			params = ct.train(train, type);
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("training time " + (end-start)/1000.0 + " seconds");

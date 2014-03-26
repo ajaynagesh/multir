@@ -51,6 +51,22 @@ public class Main {
 			if (dir == null) printUsageTest();
 			Test.test(dir);
 			
+		} else if (c.equals("test-ilp")) {
+			String dir = null;
+			String scoring = null;
+			String type = null;
+			for (int i=1; i < args.length; i++) {
+				if (args[i].equals("-dir") && i+1 < args.length)
+					dir = args[++i];
+				else if (args[i].equals("-scoring") && i+1 < args.length)
+					scoring = args[++i];
+				else if (args[i].equals("-type") && i+1 < args.length)
+					type = args[++i];
+				else printUsageTestIlp();
+			}
+			if (dir == null) printUsageTestIlp();
+			TestILP.test(dir, type, scoring);
+			
 		} else if (c.equals("results")) {
 			String dir = null;
 			for (int i=1; i < args.length; i++) {
@@ -60,6 +76,21 @@ public class Main {
 			}
 			if (dir == null) printUsageResults();
 			ResultWriter.write(dir);
+		} else if (c.equals("results-ilp")) {
+			String dir = null;
+			String scoring = null;
+			String type = null;
+			for (int i=1; i < args.length; i++) {
+				if (args[i].equals("-dir") && i+1 < args.length)
+					dir = args[++i];
+				else if (args[i].equals("-scoring") && i+1 < args.length)
+					scoring = args[++i];
+				else if (args[i].equals("-type") && i+1 < args.length)
+					type = args[++i];
+				else printUsageResultsIlp();
+			}
+			if (dir == null) printUsageResultsIlp();
+			ResultWriterILP.write(dir,type, scoring);
 		} else if (c.equals("aggPR")) {
 			String dir = null;
 			for (int i=1; i < args.length; i++) {
@@ -69,6 +100,21 @@ public class Main {
 			}
 			if (dir == null) printUsageAggPR();
 			AggregatePrecisionRecallCurve.run(dir);
+		} else if (c.equals("aggPR-ilp")) {
+			String dir = null;
+			String scoring = null;
+			String type = null;
+			for (int i=1; i < args.length; i++) {
+				if (args[i].equals("-dir") && i+1 < args.length)
+					dir = args[++i];
+				else if (args[i].equals("-scoring") && i+1 < args.length)
+					scoring = args[++i];
+				else if (args[i].equals("-type") && i+1 < args.length)
+					type = args[++i];
+				else printUsageAggPRIlp();
+			}
+			if (dir == null) printUsageAggPRIlp();
+			AggregatePrecisionRecallCurveILP.run(dir, type, scoring);
 		} else if (c.equals("senPR")) {
 			String labelsFile = null;
 			String resultsFile = null;
@@ -122,8 +168,18 @@ public class Main {
 		System.exit(1);
 	}
 
+	private static void printUsageTestIlp() {
+		System.out.println("Usage: Main test -dir .. -type <type> -scoring <type>");
+		System.exit(1);
+	}
+	
 	private static void printUsageResults() {
 		System.out.println("Usage: Main results -dir ..");
+		System.exit(1);
+	}
+	
+	private static void printUsageResultsIlp() {
+		System.out.println("Usage: Main results -dir .. -type <type> -scoring <type>");
 		System.exit(1);
 	}
 	
@@ -132,6 +188,11 @@ public class Main {
 		System.exit(1);
 	}
 
+	private static void printUsageAggPRIlp() {
+		System.out.println("Usage: Main aggPR -dir .. -type <type> -scoring <type>");
+		System.exit(1);
+	}
+	
 	private static void printUsageSenPR() {
 		System.out.println("Usage: Main senPR -labelsFile .. -resultsFile ..");
 		System.exit(1);

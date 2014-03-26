@@ -33,7 +33,7 @@ public class AveragedPerceptronILP {
 	private Parameters avgParameters;
 	private Parameters iterParameters;
 
-	public Parameters train(Dataset trainingData) {
+	public Parameters train(Dataset trainingData, String type) {
 
 		if (computeAvgParameters) {
 			avgParameters = new Parameters();
@@ -52,7 +52,7 @@ public class AveragedPerceptronILP {
 		iterParameters.init();
 
 		for (int i = 0; i < maxIterations; i++)
-			trainingIteration(i, trainingData);
+			trainingIteration(i, trainingData, type);
 
 		if (computeAvgParameters) finalizeRel();
 		
@@ -61,7 +61,7 @@ public class AveragedPerceptronILP {
 
 	int avgIteration = 0;
 
-	public void trainingIteration(int iteration, Dataset trainingData) {
+	public void trainingIteration(int iteration, Dataset trainingData, String trainType) {
 		System.out.println("iteration " + iteration);
 
 		MILDocument doc = new MILDocument();
@@ -72,13 +72,8 @@ public class AveragedPerceptronILP {
 
 		while (trainingData.next(doc)) {
 
-			// compute most likely label under current parameters
 			Parse predictedParse = FullInferenceILP.inferILP(doc, scorer,
-					iterParameters);
-			
-			// NoisyOR ILP inference
-//			Parse predictedParse = FullInferenceILP.inferNoisyOr(doc, scorer,
-//					iterParameters);
+						iterParameters, trainType, "sum"); // Last param "scoring type" does not matter in train. Hence arbitrarily choosing sum 
 
 			if (updateOnTrueY || !YsAgree(predictedParse.Y, doc.Y)) {
 				// if this is the first avgIteration, then we need to initialize

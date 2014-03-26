@@ -5,17 +5,9 @@ import ilpInference.YZPredicted;
 import edu.uw.cs.multir.learning.data.MILDocument;
 
 public class FullInferenceILP {
-
-	public static Parse inferNoisyOr(MILDocument doc,
-			Scorer parseScorer, Parameters params) {
-		
-		Parse parse = new Parse();
-		
-		return parse;
-	}
 	
 	public static Parse inferILP(MILDocument entityPair,
-			Scorer parseScorer, Parameters params) {
+			Scorer parseScorer, Parameters params, String trainType, String scoring) {
 		Parse parse = new Parse();
 		parse.doc = entityPair; // doc == entityPair
 		parse.Z = new int[entityPair.numMentions];
@@ -34,13 +26,19 @@ public class FullInferenceILP {
 		
 		int nilIndex = 0;
 		InferenceWrappers ilpInfHandle = new InferenceWrappers();
-		YZPredicted yz_pred_ilp = ilpInfHandle.generateYZPredictedILP(mentionScores, entityPair.numMentions, 
+		YZPredicted yz_pred_ilp = null; 
+		
+		if(trainType.equals("ilp"))
+			yz_pred_ilp = ilpInfHandle.generateYZPredictedILP(mentionScores, entityPair.numMentions, 
 																		params.model.numRelations, nilIndex);
+		else if(trainType.equals("noisyor"))
+			yz_pred_ilp = ilpInfHandle.generateYZPredictedILPnoisyOr(mentionScores, entityPair.numMentions, 
+					params.model.numRelations, nilIndex);
 		
 		boolean[] binaryYs = new boolean[params.model.numRelations];
 		int numYs = 0;
 		double[] scores = new double[params.model.numRelations];
-		
+		for (int i=0; i < scores.length; i++) scores[i] = Double.NEGATIVE_INFINITY;		
 		for (int m = 0; m < entityPair.numMentions; m++) {
 			int label_m = yz_pred_ilp.getZPredicted()[m];
 			parse.Z[m] = label_m;
@@ -50,8 +48,19 @@ public class FullInferenceILP {
 				numYs++;
 			}
 			
-			if (mentionScores[m][label_m] > scores[parse.Z[m]])
-				scores[parse.Z[m]] = mentionScores[m][label_m];
+			// Max scoring
+			if(scoring == "max") {
+				if (mentionScores[m][label_m] > scores[parse.Z[m]])
+					scores[parse.Z[m]] = mentionScores[m][label_m];
+			}
+			
+			// sum scoring
+			if(scoring == "sum") {
+				if (scores[parse.Z[m]] == Double.NEGATIVE_INFINITY)
+					scores[parse.Z[m]] = mentionScores[m][label_m];
+				else
+					scores[parse.Z[m]] += mentionScores[m][label_m];
+			}
 		}
 
 		parse.Y = new int[numYs];
@@ -67,12 +76,12 @@ public class FullInferenceILP {
 		/*
 		 * Cross check the y labels set here and y labels returned from ilp
 		 */
-		for(int i = 0; i < params.model.numRelations; i++){
-			if(!((binaryYs[i] == true && yz_pred_ilp.getYPredicted()[i] == 1)
-					|| (binaryYs[i] == false && yz_pred_ilp.getYPredicted()[i] == 0))){
-				System.out.println("The labels do not match ... how come ? ");
-			}
-		}
+//		for(int i = 0; i < params.model.numRelations; i++){
+//			if(!((binaryYs[i] == true && yz_pred_ilp.getYPredicted()[i] == 1)
+//					|| (binaryYs[i] == false && yz_pred_ilp.getYPredicted()[i] == 0))){
+//				System.out.println("The labels do not match ... how come ? ");
+//			}
+//		}
 		//System.out.println("Labels match .. OK");
 		/***
 		 * Keeping the following piece of code as is
