@@ -45,6 +45,8 @@ public class AggregatePrecisionRecallCurveILP {
 		MILDocument doc = new MILDocument();
 		int numRelationInst = 0;
 		test.reset();
+		int numOfEps = 0;
+		long epS = System.currentTimeMillis();
 		while (test.next(doc)) {
 			//numRelationInst += doc.Y.length;
 			Parse parse = FullInferenceILP.inferILP(doc, scorer, params, trainType, scoring);
@@ -71,6 +73,15 @@ public class AggregatePrecisionRecallCurveILP {
 			
 			for (int i=1; i < binaryYt.length; i++)
 				if (binaryYt[i]) numRelationInst++;
+			
+			numOfEps++;
+			if(numOfEps % 1000 == 0){
+				long epE = System.currentTimeMillis();
+				double epTime = (epE - epS) / 1000.0;
+				System.err.println("Processed " 
+							+ numOfEps +" /  " +  test.numDocs() + " in " + epTime + " s");
+				epS = epE;
+			}
 		}
 		
 		Collections.sort(predictions, new Comparator<Prediction>() {

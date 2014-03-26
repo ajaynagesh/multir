@@ -70,8 +70,12 @@ public class AveragedPerceptronILP {
 
 		trainingData.reset();
 
+		int numOfEps = 0;
+		long itS  = System.currentTimeMillis();
+		long epS = System.currentTimeMillis();
+		
 		while (trainingData.next(doc)) {
-
+			
 			Parse predictedParse = FullInferenceILP.inferILP(doc, scorer,
 						iterParameters, trainType, "sum"); // Last param "scoring type" does not matter in train. Hence arbitrarily choosing sum 
 
@@ -81,15 +85,26 @@ public class AveragedPerceptronILP {
 				if (computeAvgParameters && avgIteration == 0)
 					avgParamsLastUpdates.sum(iterParameters, 1.0f);
 
-//				Parse trueParse = ConditionalInferenceILP.inferILP(doc, scorer,
-//					iterParameters);
-				Parse trueParse = ConditionalInference.infer(doc, scorer,
+				Parse trueParse = ConditionalInferenceILP.inferILP(doc, scorer,
 					iterParameters);
 				update(predictedParse, trueParse);
 			}
 
 			if (computeAvgParameters) avgIteration++;
+			
+			numOfEps++;
+			if(numOfEps % 1000 == 0){
+				long epE = System.currentTimeMillis();
+				double epTime = (epE - epS) / 1000.0;
+				System.out.println("Iter " + iteration  + " : " + "Processed " 
+							+ numOfEps +" /  " +  trainingData.numDocs() + " in " + epTime + " s");
+				epS = epE;
+			}
 		}
+		
+		long itE  = System.currentTimeMillis();
+		double time = (itE - itS) / 1000.0;
+		System.err.println("Time for iteration " + iteration + ": " + time + " s");
 	}
 
 	private boolean YsAgree(int[] y1, int[] y2) {

@@ -58,6 +58,8 @@ public class ResultWriterILP {
 		
 		MILDocument doc = new MILDocument();
 		test.reset();		
+		int numOfEps = 0;
+		long epS = System.currentTimeMillis();
 		while (test.next(doc)) {
 			Parse parse = FullInferenceILP.inferILP(doc, scorer, params, trainType, scoring);
 			int[] Yp = parse.Y;
@@ -81,6 +83,15 @@ public class ResultWriterILP {
 				StringBuilder sb2 = new StringBuilder();
 				ps.append(doc.arg1 + "\t" + doc.arg2 + "\t" + m + "\t" + 
 						relID2rel.get(parse.Z[m]) + "\t" + parse.score + "\t" + sb2.toString() + "\n");
+			}
+			
+			numOfEps++;
+			if(numOfEps % 1000 == 0){
+				long epE = System.currentTimeMillis();
+				double epTime = (epE - epS) / 1000.0;
+				System.err.println("Processed " 
+							+ numOfEps +" /  " +  test.numDocs() + " in " + epTime + " s");
+				epS = epE;
 			}
 		}
 	}

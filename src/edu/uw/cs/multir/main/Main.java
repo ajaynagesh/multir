@@ -5,7 +5,12 @@ import java.io.IOException;
 public class Main {
 
 	public static void main(String[] args) throws IOException {
-		System.out.println("test comment");
+		System.out.print("Command line args: " );
+		for(String arg : args){
+			System.out.print(arg + " ");
+		}
+		System.out.println();
+		
 		if (args.length == 0)
 			printUsage();
 		
@@ -169,7 +174,7 @@ public class Main {
 	}
 
 	private static void printUsageTestIlp() {
-		System.out.println("Usage: Main test -dir .. -type <type> -scoring <type>");
+		System.out.println("Usage: Main test-ilp -dir .. -type <type> -scoring <type>");
 		System.exit(1);
 	}
 	
@@ -179,7 +184,7 @@ public class Main {
 	}
 	
 	private static void printUsageResultsIlp() {
-		System.out.println("Usage: Main results -dir .. -type <type> -scoring <type>");
+		System.out.println("Usage: Main results-ilp -dir .. -type <type> -scoring <type>");
 		System.exit(1);
 	}
 	
@@ -189,7 +194,7 @@ public class Main {
 	}
 
 	private static void printUsageAggPRIlp() {
-		System.out.println("Usage: Main aggPR -dir .. -type <type> -scoring <type>");
+		System.out.println("Usage: Main aggPR-ilp -dir .. -type <type> -scoring <type>");
 		System.exit(1);
 	}
 	

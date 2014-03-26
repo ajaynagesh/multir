@@ -1,5 +1,6 @@
 package ilpInference;
 
+import net.sf.javailp.Constraint;
 import net.sf.javailp.Linear;
 import net.sf.javailp.OptType;
 import net.sf.javailp.Problem;
@@ -10,19 +11,16 @@ import net.sf.javailp.SolverFactoryLpSolve;
 
 public class InferenceWrappers {
 	
-	/*
-	public Set<Integer> [] generateZUpdateILP(double[][] scoresYGiven, 
+	
+	public int [] generateZUpdateILP(double[][] mentionScores, 
 											  int numOfMentions, 
-											  Set<Integer> goldPos,
+											  int [] goldPos,
 											  int nilIndex){
 //		System.out.println("Calling ILP inference for Pr (Z | Y,X)");
 //		System.out.println("Num of mentions : " + numOfMentions);
 //		System.out.println("Relation labels : " + goldPos);
 
-		Set<Integer> [] zUpdate = ErasureUtils.uncheckedCast(new Set[numOfMentions]);
-		for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
-			zUpdate[mentionIdx] = new HashSet<Integer>(); 
-		}
+		int [] zUpdate = new int[numOfMentions];
 		
 		SolverFactory factory = new SolverFactoryLpSolve();
 		factory.setParameter(Solver.VERBOSE, 0);
@@ -32,16 +30,16 @@ public class InferenceWrappers {
 		Linear objective = new Linear();
 		Linear constraint;
 
-		if(goldPos.size() > numOfMentions){
+		if(goldPos.length > numOfMentions){
 			//////////////Objective --------------------------------------
 			for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
-				Counter<Integer> score = scoresYGiven.get(mentionIdx);
-				for(int label : score.keySet()){
+				double[] score = mentionScores[mentionIdx];
+				for(int label : goldPos){
 					if(label == nilIndex)
 						continue; 
 					
 					String var = "z"+mentionIdx+"_"+"y"+label;
-					double coeff = score.getCount(label);
+					double coeff = score[label];
 					objective.add(coeff, var);
 
 					//System.out.print(score.getCount(label) + "  " + "z"+mentionIdx+"_"+"y"+label + " + ");
@@ -56,18 +54,23 @@ public class InferenceWrappers {
 			for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
 				constraint = new Linear();
 				for(int y : goldPos){
+					if(y == nilIndex)
+						continue;
+					
 					String var = "z"+mentionIdx+"_"+"y"+y;
 					constraint.add(1, var);
 						
 					//System.out.print("z"+mentionIdx+"_"+"y"+y + " + ");				
-				}
-								
+				}			
 				problem.add(constraint, "=", 1);
 				//System.out.println(" 0 = "+ "1");
 			}
 			
 			/// 2. \Sum_j z_ji <= 1 \forall i
 			for(int y : goldPos){
+				if(y == nilIndex)
+					continue; 
+				
 				constraint = new Linear();
 				for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
 					String var = "z"+mentionIdx+"_"+"y"+y;
@@ -79,14 +82,21 @@ public class InferenceWrappers {
 		else {
 			//////////////Objective --------------------------------------
 			for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
-				Counter<Integer> score = scoresYGiven.get(mentionIdx);
-				for(int label : score.keySet()){
+				double[] score = mentionScores[mentionIdx];
+				for(int label : goldPos){
+					if(label == nilIndex)
+						continue;
+					
 					String var = "z"+mentionIdx+"_"+"y"+label;
-					double coeff = score.getCount(label);
+					double coeff = score[label];
 					objective.add(coeff, var);
 
 					//System.out.print(score.getCount(label) + "  " + "z"+mentionIdx+"_"+"y"+label + " + ");
 				}
+				//add the nil label
+				String var = "z"+mentionIdx+"_"+"y"+nilIndex;
+				double coeff = score[nilIndex];
+				objective.add(coeff, var);
 			}
 
 			problem.setObjective(objective, OptType.MAX);
@@ -95,11 +105,15 @@ public class InferenceWrappers {
 			for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
 				constraint = new Linear();
 				for(int y : goldPos){
+					if(y == nilIndex)
+						continue;
+					
 					String var = "z"+mentionIdx+"_"+"y"+y;
 					constraint.add(1, var);
 						
 					//System.out.print("z"+mentionIdx+"_"+"y"+y + " + ");				
 				}
+				//add the nil label
 				constraint.add(1, "z"+mentionIdx+"_"+"y"+nilIndex); //nil index added to constraint
 				
 				problem.add(constraint, "=", 1);
@@ -163,12 +177,12 @@ public class InferenceWrappers {
 				//System.out.println(split[1]);
 				int ylabel = Integer.parseInt(split[1].toString().substring(1));
 				if(ylabel != nilIndex)
-					zUpdate[mentionIdx].add(ylabel);
+					zUpdate[mentionIdx] = ylabel;
 			}			
 		}
 	
 		return zUpdate;
-	}*/
+	}
 	
 	public YZPredicted generateYZPredictedILPnoisyOr(double[][] mentionScores,
 			int numOfMentions, 
