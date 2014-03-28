@@ -124,6 +124,9 @@ public class InferenceWrappers {
 			/// 2. inequality constraint ===>  1 <= \Sum_j z_ji \forall i \in Y'  {lhs=1, since we consider only Y' i.e goldPos}
 			/////////// ------------------------------------------------------
 			for(int y : goldPos){
+				if(y == nilIndex)
+					continue; 
+				
 				constraint = new Linear();
 				for(int mentionIdx = 0; mentionIdx < numOfMentions; mentionIdx ++){
 					String var = "z"+mentionIdx+"_"+"y"+y;
@@ -176,8 +179,8 @@ public class InferenceWrappers {
 				int mentionIdx = Integer.parseInt(split[0].toString().substring(1));
 				//System.out.println(split[1]);
 				int ylabel = Integer.parseInt(split[1].toString().substring(1));
-				if(ylabel != nilIndex)
-					zUpdate[mentionIdx] = ylabel;
+				//if(ylabel != nilIndex)
+				zUpdate[mentionIdx] = ylabel;
 			}			
 		}
 	
