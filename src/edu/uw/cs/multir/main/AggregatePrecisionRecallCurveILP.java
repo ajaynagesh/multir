@@ -6,8 +6,12 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import datasetUtils.entityInfo;
+import datasetUtils.readDataset;
 import edu.uw.cs.multir.learning.algorithm.FullInference;
 import edu.uw.cs.multir.learning.algorithm.FullInferenceILP;
 import edu.uw.cs.multir.learning.algorithm.Model;
@@ -17,6 +21,8 @@ import edu.uw.cs.multir.learning.algorithm.Scorer;
 import edu.uw.cs.multir.learning.data.Dataset;
 import edu.uw.cs.multir.learning.data.MILDocument;
 import edu.uw.cs.multir.learning.data.MemoryDataset;
+import edu.uw.cs.multir.main.AggregatePrecisionRecallCurve.Prediction;
+import edu.uw.cs.multir.preprocess.Mappings;
 
 public class AggregatePrecisionRecallCurveILP {
 	
@@ -47,6 +53,9 @@ public class AggregatePrecisionRecallCurveILP {
 		test.reset();
 		int numOfEps = 0;
 		long epS = System.currentTimeMillis();
+		
+		HashMap<String, entityInfo> entityMap = readDataset.createMap("annotations/filtered-freebase-simple-topic-dump-3cols.tsv");
+		
 		while (test.next(doc)) {
 			//numRelationInst += doc.Y.length;
 			Parse parse = FullInferenceILP.inferILP(doc, scorer, params, trainType, scoring);
@@ -67,7 +76,7 @@ public class AggregatePrecisionRecallCurveILP {
 			for (int i=1; i < binaryYt.length; i++) {				
 				if (binaryYt[i] || binaryYp[i]) {
 					predictions.add
-						(new Prediction(i, binaryYt[i], binaryYp[i], parse.scores[i], doc, parse));
+						(new Prediction(i, binaryYt[i], binaryYp[i], parse.scores[i], doc, parse, entityMap.get(doc.arg1).toString(), entityMap.get(doc.arg2).toString()));
 				}
 			}
 			
@@ -90,6 +99,14 @@ public class AggregatePrecisionRecallCurveILP {
 				else return +1;
 			} });
 		
+		// need mapping from relIDs to rels
+		String mappingFile = "output" + File.separatorChar + "mapping";
+		Mappings mapping = new Mappings();
+		mapping.read(mappingFile);
+		Map<Integer,String> relID2rel = new HashMap<Integer,String>();
+		for (Map.Entry<String,Integer> e : mapping.getRel2RelID().entrySet())
+			relID2rel.put(e.getValue(), e.getKey());
+		
 		PrecisionRecallTester prt = new PrecisionRecallTester();
 		prt.reset();
 		double prevRec = -1, prevPre = -1;
@@ -100,7 +117,8 @@ public class AggregatePrecisionRecallCurveILP {
 			double recall = prt.recall();
 			double precision = prt.precision();
 			if (recall != prevRec || precision != prevPre) {
-				ps.println(recall + "\t" + precision);
+				//ps.println(recall + "\t" + precision);
+				ps.println(recall + "\t" + precision + "\t" + p.e1 + "\t" + p.e2 + "\t" +  relID2rel.get(p.rel) + "\t" + p.predRel + "\t" + p.trueRel + "\t" + p.score);
 				prevRec = recall;
 				prevPre = precision;
 			}
@@ -114,6 +132,10 @@ public class AggregatePrecisionRecallCurveILP {
 		double score;
 		MILDocument doc;
 		Parse parse;
+		
+		String e1;
+		String e2;
+		
 		Prediction(int rel, boolean trueRel, boolean predRel, double score, 
 				MILDocument doc, Parse parse) {
 			this.rel = rel;
@@ -122,6 +144,18 @@ public class AggregatePrecisionRecallCurveILP {
 			this.score = score;
 			this.doc = doc;
 			this.parse = parse;
+		}
+		
+		Prediction(int rel, boolean trueRel, boolean predRel, double score, 
+				MILDocument doc, Parse parse, String e1, String e2) {
+			this.rel = rel;
+			this.trueRel = trueRel;
+			this.predRel = predRel;
+			this.score = score;
+			this.doc = doc;
+			this.parse = parse;
+			this.e1 = e1;
+			this.e2 = e2;
 		}
 	}
 

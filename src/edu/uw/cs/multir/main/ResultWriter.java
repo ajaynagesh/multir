@@ -6,6 +6,8 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import datasetUtils.entityInfo;
+import datasetUtils.readDataset;
 import edu.uw.cs.multir.learning.algorithm.FullInference;
 import edu.uw.cs.multir.learning.algorithm.Model;
 import edu.uw.cs.multir.learning.algorithm.Parameters;
@@ -57,6 +59,9 @@ public class ResultWriter {
 		
 		MILDocument doc = new MILDocument();
 		test.reset();		
+		
+		HashMap<String, entityInfo> entityMap = readDataset.createMap("annotations/filtered-freebase-simple-topic-dump-3cols.tsv");
+		
 		while (test.next(doc)) {
 			Parse parse = FullInference.infer(doc, scorer, params);
 			int[] Yp = parse.Y;
@@ -78,7 +83,7 @@ public class ResultWriter {
 
 			for (int m = 0; m < doc.numMentions; m++) {
 				StringBuilder sb2 = new StringBuilder();
-				ps.append(doc.arg1 + "\t" + doc.arg2 + "\t" + m + "\t" + 
+				ps.append(entityMap.get(doc.arg1).toString() + "\t" + entityMap.get(doc.arg2).toString() + "\t" + m + "\t" + 
 						relID2rel.get(parse.Z[m]) + "\t" + parse.score + "\t" + sb2.toString() + "\n");
 			}
 		}
