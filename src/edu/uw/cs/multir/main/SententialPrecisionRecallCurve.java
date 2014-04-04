@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class SententialPrecisionRecallCurve {
 
-	static boolean outputTopSentences = false;
+	static boolean outputTopSentences = true;
 
 	// treat "indirect" labels as "y" labels
 	static boolean indirect = true;
@@ -124,14 +124,27 @@ public class SententialPrecisionRecallCurve {
 				String key = e.arg1 + "\t" + e.arg2 + "\t" + e.mentionID;
 				List<Label> ll = labels.get(key);
 				if (ll != null) {
+					boolean isRelTrueInSen = false;
 					StringBuilder sb = new StringBuilder();
 					for (Label l : ll) {
 						sb.append(l.tf + ":" + l.relation + ", ");
+						if(l.tf == true)
+							isRelTrueInSen = true;
 					}
 					Label l1 = ll.get(0);
+					
+					String isCorrect= "";
+					if(isRelTrueInSen && sb.toString().contains(e.predRelation))
+						isCorrect = "correct prediction";
+					else if(!isRelTrueInSen && e.predRelation.equals("NA"))
+						isCorrect = "correct prediction";
+					else
+						isCorrect = "wrong prediction";
+
+					
 					System.out.println(l1.name1 + "\t" + l1.name2 + "\t" + 
-							e.predRelation + "\t" + sb.toString() + "\t" + 
-							l1.sentence + "\t" + e.predScore + "\n");
+							e.predRelation + "\t" + isCorrect + "\t" + sb.toString() + "\t" + 
+							l1.sentence + "\t" + e.predScore );
 				}
 			}
 		}		

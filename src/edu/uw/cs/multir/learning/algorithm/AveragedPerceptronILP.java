@@ -1,6 +1,9 @@
 package edu.uw.cs.multir.learning.algorithm;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import edu.uw.cs.multir.learning.data.Dataset;
 import edu.uw.cs.multir.learning.data.MILDocument;
@@ -77,7 +80,8 @@ public class AveragedPerceptronILP {
 		while (trainingData.next(doc)) {
 			
 			Parse predictedParse = FullInferenceILP.inferILP(doc, scorer,
-						iterParameters, trainType, "sum"); // Last param "scoring type" does not matter in train. Hence arbitrarily choosing sum 
+						iterParameters, trainType, "sum"); // Last param "scoring type" does not matter in train. Hence arbitrarily choosing sum
+//			Parse predictedParse = FullInferenceILP.infer(doc, scorer, iterParameters);
 
 			if (updateOnTrueY || !YsAgree(predictedParse.Y, doc.Y)) {
 				// if this is the first avgIteration, then we need to initialize
@@ -87,6 +91,19 @@ public class AveragedPerceptronILP {
 
 				Parse trueParse = ConditionalInferenceILP.inferILP(doc, scorer,
 					iterParameters);
+//				Parse trueParse = ConditionalInferenceILP.infer(doc, scorer, iterParameters);
+				
+//				if(trueParse.score < trueParseDash.score){
+//					System.out.println("Suboptimal solution!!!!!!");
+//				}
+				
+//				areSame(trueParse, trueParseDash);
+//				if(!areSame(trueParse, trueParseDash)){
+//					trueParse = ConditionalInferenceILP.inferILP(doc, scorer,
+//							iterParameters);
+//					trueParseDash = ConditionalInferenceILP.infer(doc, scorer, iterParameters);
+//				}
+				
 				update(predictedParse, trueParse);
 			}
 
@@ -107,6 +124,85 @@ public class AveragedPerceptronILP {
 		System.err.println("Time for iteration " + iteration + ": " + time + " s");
 	}
 
+	boolean areSame(Parse p1, Parse p2){
+
+		boolean print = false;
+		
+		HashMap<Integer, Integer> p1Hash = new HashMap<Integer, Integer>();
+		for(int z : p1.Z){
+			if(!p1Hash.containsKey(z))
+				p1Hash.put(z, 1);
+			else {
+				int cnt = p1Hash.get(z);
+				cnt++;
+				p1Hash.put(z, cnt);
+			}
+		}
+		
+		HashMap<Integer, Integer> p2Hash = new HashMap<Integer, Integer>();
+		for(int z : p2.Z){
+			if(!p2Hash.containsKey(z))
+				p2Hash.put(z, 1);
+			else {
+				int cnt = p2Hash.get(z);
+				cnt++;
+				p2Hash.put(z, cnt);
+			}
+		}
+
+		HashSet<Integer> keys = new HashSet<Integer>();
+		keys.addAll(p1Hash.keySet());
+		keys.addAll(p2Hash.keySet());
+		for(int z : keys){
+
+			if(! (p1Hash.containsKey(z) && p2Hash.containsKey(z) && p1Hash.get(z) == p2Hash.get(z))){
+				print = true;
+			}
+		}
+			
+		if(print == true) {
+			
+			System.out.println(p1Hash.get(13) + " &" + p2Hash.get(13));
+			System.out.print("Z[ilp] :");
+			if(p1Hash.get(13) != p2Hash.get(13))
+				System.out.println("why ??");
+			for(int z : p1Hash.keySet()){
+				System.out.print(z + ":" + p1Hash.get(z) + " ");
+			}
+			System.out.println();
+			System.out.print("Z[orig] :");
+			for(int z : p2Hash.keySet()){
+				System.out.print(z + ":" + p2Hash.get(z) + " ");
+			}
+			System.out.println();
+			System.out.println("-----");
+		}
+
+		//		if(p1.Z.length == 3){
+//			
+//			for(int i = 0; i < p1.Z.length; i++ ){
+//				if(p1.Z[i] != p2.Z[i]){
+//					print (p1.Y, p2.Y, "Y");
+//					print (p1.Z, p2.Z, "Z");
+//					return false;
+//				}
+//			}
+//		}
+		return true;
+	}
+	
+	void print(int[] a, int [] b, String name){
+		System.out.println(name+"-ilp");
+		for(int i = 0; i < a.length; i ++)
+			System.out.print(a[i] + " ");
+		System.out.println();
+		System.out.println(name+"-orig");
+		for(int i = 0; i < b.length; i ++)
+			System.out.print(b[i] + " ");
+		System.out.println();
+		System.out.println("---");
+	}
+	
 	private boolean YsAgree(int[] y1, int[] y2) {
 		if (y1.length != y2.length)
 			return false;
